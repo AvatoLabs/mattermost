@@ -11,10 +11,10 @@ import (
 
 // ChannelReadCursor represents a user's reading progress in a channel
 type ChannelReadCursor struct {
-	ChannelId   string `json:"channel_id"`
-	UserId      string `json:"user_id"`
-	LastPostSeq int64  `json:"last_post_seq"` // Sequence number (typically CreateAt timestamp)
-	UpdatedAt   int64  `json:"updated_at"`
+	ChannelId   string `json:"channel_id" db:"channel_id"`
+	UserId      string `json:"user_id" db:"user_id"`
+	LastPostSeq int64  `json:"last_post_seq" db:"last_post_seq"` // Sequence number (typically CreateAt timestamp)
+	UpdatedAt   int64  `json:"updated_at" db:"updated_at"`
 }
 
 // ReadCursorAdvanceRequest is the request body for advancing a read cursor
