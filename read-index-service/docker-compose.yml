@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  read-index-service:
+    build: .
+    ports:
+      - "8066:8066"
+    environment:
+      # 使用 Mattermost 的 Redis 实例
+      # 如果 Mattermost 在 Docker 网络中，使用服务名
+      # 如果在宿主机上，使用 host.docker.internal
+      - REDIS_URL=redis://host.docker.internal:6379/0
+      - PORT=8066
+      - WINDOW_SIZE=1000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+# 注意：此配置假设 Mattermost 的 Redis 在宿主机的 6379 端口
+# 如果 Mattermost 使用 Docker Compose，应该加入同一个网络：
+# networks:
+#   - mattermost_default
+#
+# networks:
+#   mattermost_default:
+#     external: true
