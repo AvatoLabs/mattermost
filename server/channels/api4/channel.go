@@ -81,6 +81,10 @@ func (api *API) InitChannel() {
 
 	api.BaseRoutes.ChannelModerations.Handle("", api.APISessionRequired(getChannelModerations)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelModerations.Handle("/patch", api.APISessionRequired(patchChannelModerations)).Methods(http.MethodPut)
+
+	// Read receipts / read cursor endpoints
+	api.BaseRoutes.Channel.Handle("/read_cursor", api.APISessionRequired(advanceReadCursor)).Methods(http.MethodPost)
+	api.BaseRoutes.Channel.Handle("/read_cursor", api.APISessionRequired(getReadCursor)).Methods(http.MethodGet)
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1680,6 +1684,14 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Auto-advance read cursor when viewing a channel
+	if view.ChannelId != "" {
+		if appErr := c.App.AutoAdvanceReadCursorOnChannelView(c.AppContext, c.Params.UserId, view.ChannelId); appErr != nil {
+			// Log but don't fail the request
+			c.Logger.Debug("Failed to auto-advance read cursor", mlog.Err(appErr))
+		}
+	}
+
 	c.App.Srv().Platform().UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 	c.ExtendSessionExpiryIfNeeded(w, r)
 
@@ -2563,6 +2575,71 @@ func getChannelAccessControlAttributes(c *Context, w http.ResponseWriter, r *htt
 	}
 
 	if err := json.NewEncoder(w).Encode(attributes); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// advanceReadCursor advances the user's read cursor in a channel
+// POST /api/v4/channels/{channel_id}/read_cursor
+func advanceReadCursor(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	var req model.ReadCursorAdvanceRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&req); jsonErr != nil {
+		c.SetInvalidParamWithErr("body", jsonErr)
+		return
+	}
+
+	if err := req.IsValid(); err != nil {
+		c.Err = err
+		return
+	}
+
+	userId := c.AppContext.Session().UserId
+
+	var cursor *model.ChannelReadCursor
+	var appErr *model.AppError
+
+	// Determine sequence number from request
+	if req.PostId != "" {
+		// Derive sequence from post
+		cursor, appErr = c.App.AdvanceChannelReadCursorByPost(c.AppContext, userId, req.PostId)
+	} else {
+		// Use provided sequence directly
+		cursor, appErr = c.App.AdvanceChannelReadCursor(c.AppContext, userId, c.Params.ChannelId, req.LastPostSeq)
+	}
+
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(cursor); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// getReadCursor retrieves the user's read cursor for a channel
+// GET /api/v4/channels/{channel_id}/read_cursor
+func getReadCursor(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	userId := c.AppContext.Session().UserId
+
+	cursor, appErr := c.App.GetChannelReadCursor(c.AppContext, userId, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(cursor); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

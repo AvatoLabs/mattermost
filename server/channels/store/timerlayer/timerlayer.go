@@ -26,6 +26,7 @@ type TimerLayer struct {
 	ChannelStore                    store.ChannelStore
 	ChannelBookmarkStore            store.ChannelBookmarkStore
 	ChannelMemberHistoryStore       store.ChannelMemberHistoryStore
+	ChannelReadCursorStore          store.ChannelReadCursorStore
 	ClusterDiscoveryStore           store.ClusterDiscoveryStore
 	CommandStore                    store.CommandStore
 	CommandWebhookStore             store.CommandWebhookStore
@@ -99,6 +100,10 @@ func (s *TimerLayer) ChannelBookmark() store.ChannelBookmarkStore {
 
 func (s *TimerLayer) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return s.ChannelMemberHistoryStore
+}
+
+func (s *TimerLayer) ChannelReadCursor() store.ChannelReadCursorStore {
+	return s.ChannelReadCursorStore
 }
 
 func (s *TimerLayer) ClusterDiscovery() store.ClusterDiscoveryStore {
@@ -313,6 +318,11 @@ type TimerLayerChannelBookmarkStore struct {
 
 type TimerLayerChannelMemberHistoryStore struct {
 	store.ChannelMemberHistoryStore
+	Root *TimerLayer
+}
+
+type TimerLayerChannelReadCursorStore struct {
+	store.ChannelReadCursorStore
 	Root *TimerLayer
 }
 
@@ -3010,6 +3020,118 @@ func (s *TimerLayerChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPo
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelMemberHistoryStore.PermanentDeleteBatchForRetentionPolicies", success, elapsed)
 	}
 	return result, resultVar1, err
+}
+
+func (s *TimerLayerChannelReadCursorStore) Delete(channelId string, userId string) error {
+	start := time.Now()
+
+	err := s.ChannelReadCursorStore.Delete(channelId, userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelReadCursorStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerChannelReadCursorStore) DeleteForChannel(channelId string) error {
+	start := time.Now()
+
+	err := s.ChannelReadCursorStore.DeleteForChannel(channelId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelReadCursorStore.DeleteForChannel", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerChannelReadCursorStore) DeleteOldCursors(olderThan int64) error {
+	start := time.Now()
+
+	err := s.ChannelReadCursorStore.DeleteOldCursors(olderThan)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelReadCursorStore.DeleteOldCursors", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerChannelReadCursorStore) Get(channelId string, userId string) (*model.ChannelReadCursor, error) {
+	start := time.Now()
+
+	result, err := s.ChannelReadCursorStore.Get(channelId, userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelReadCursorStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelReadCursorStore) GetForChannel(channelId string) ([]*model.ChannelReadCursor, error) {
+	start := time.Now()
+
+	result, err := s.ChannelReadCursorStore.GetForChannel(channelId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelReadCursorStore.GetForChannel", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelReadCursorStore) GetForUser(userId string) ([]*model.ChannelReadCursor, error) {
+	start := time.Now()
+
+	result, err := s.ChannelReadCursorStore.GetForUser(userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelReadCursorStore.GetForUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelReadCursorStore) Upsert(cursor *model.ChannelReadCursor) error {
+	start := time.Now()
+
+	err := s.ChannelReadCursorStore.Upsert(cursor)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelReadCursorStore.Upsert", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerClusterDiscoveryStore) Cleanup() error {
@@ -6814,10 +6936,10 @@ func (s *TimerLayerPostStore) RefreshPostStats() error {
 	return err
 }
 
-func (s *TimerLayerPostStore) RestoreContentFlaggedPost(post *model.Post, deletedBy string, statusFieldId string) error {
+func (s *TimerLayerPostStore) RestoreContentFlaggedPost(post *model.Post, statusFieldId string, contentFlaggingManagedFieldId string) error {
 	start := time.Now()
 
-	err := s.PostStore.RestoreContentFlaggedPost(post, deletedBy, statusFieldId)
+	err := s.PostStore.RestoreContentFlaggedPost(post, statusFieldId, contentFlaggingManagedFieldId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -13474,6 +13596,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.ChannelStore = &TimerLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
 	newStore.ChannelBookmarkStore = &TimerLayerChannelBookmarkStore{ChannelBookmarkStore: childStore.ChannelBookmark(), Root: &newStore}
 	newStore.ChannelMemberHistoryStore = &TimerLayerChannelMemberHistoryStore{ChannelMemberHistoryStore: childStore.ChannelMemberHistory(), Root: &newStore}
+	newStore.ChannelReadCursorStore = &TimerLayerChannelReadCursorStore{ChannelReadCursorStore: childStore.ChannelReadCursor(), Root: &newStore}
 	newStore.ClusterDiscoveryStore = &TimerLayerClusterDiscoveryStore{ClusterDiscoveryStore: childStore.ClusterDiscovery(), Root: &newStore}
 	newStore.CommandStore = &TimerLayerCommandStore{CommandStore: childStore.Command(), Root: &newStore}
 	newStore.CommandWebhookStore = &TimerLayerCommandWebhookStore{CommandWebhookStore: childStore.CommandWebhook(), Root: &newStore}

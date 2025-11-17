@@ -430,7 +430,7 @@ func NewTestLicense(features ...string) *License {
 			Id:      "some ID",
 			Email:   "admin@example.com",
 			Name:    "Main Contact Person",
-			Company: "My awesome Company",
+			Company: "Avato Labs",
 		},
 		Features: &Features{},
 	}

@@ -27,6 +27,7 @@ type RetryLayer struct {
 	ChannelStore                    store.ChannelStore
 	ChannelBookmarkStore            store.ChannelBookmarkStore
 	ChannelMemberHistoryStore       store.ChannelMemberHistoryStore
+	ChannelReadCursorStore          store.ChannelReadCursorStore
 	ClusterDiscoveryStore           store.ClusterDiscoveryStore
 	CommandStore                    store.CommandStore
 	CommandWebhookStore             store.CommandWebhookStore
@@ -100,6 +101,10 @@ func (s *RetryLayer) ChannelBookmark() store.ChannelBookmarkStore {
 
 func (s *RetryLayer) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return s.ChannelMemberHistoryStore
+}
+
+func (s *RetryLayer) ChannelReadCursor() store.ChannelReadCursorStore {
+	return s.ChannelReadCursorStore
 }
 
 func (s *RetryLayer) ClusterDiscovery() store.ClusterDiscoveryStore {
@@ -314,6 +319,11 @@ type RetryLayerChannelBookmarkStore struct {
 
 type RetryLayerChannelMemberHistoryStore struct {
 	store.ChannelMemberHistoryStore
+	Root *RetryLayer
+}
+
+type RetryLayerChannelReadCursorStore struct {
+	store.ChannelReadCursorStore
 	Root *RetryLayer
 }
 
@@ -3652,6 +3662,153 @@ func (s *RetryLayerChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPo
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, resultVar1, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelReadCursorStore) Delete(channelId string, userId string) error {
+
+	tries := 0
+	for {
+		err := s.ChannelReadCursorStore.Delete(channelId, userId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelReadCursorStore) DeleteForChannel(channelId string) error {
+
+	tries := 0
+	for {
+		err := s.ChannelReadCursorStore.DeleteForChannel(channelId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelReadCursorStore) DeleteOldCursors(olderThan int64) error {
+
+	tries := 0
+	for {
+		err := s.ChannelReadCursorStore.DeleteOldCursors(olderThan)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelReadCursorStore) Get(channelId string, userId string) (*model.ChannelReadCursor, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelReadCursorStore.Get(channelId, userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelReadCursorStore) GetForChannel(channelId string) ([]*model.ChannelReadCursor, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelReadCursorStore.GetForChannel(channelId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelReadCursorStore) GetForUser(userId string) ([]*model.ChannelReadCursor, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelReadCursorStore.GetForUser(userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelReadCursorStore) Upsert(cursor *model.ChannelReadCursor) error {
+
+	tries := 0
+	for {
+		err := s.ChannelReadCursorStore.Upsert(cursor)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -8536,11 +8693,11 @@ func (s *RetryLayerPostStore) RefreshPostStats() error {
 
 }
 
-func (s *RetryLayerPostStore) RestoreContentFlaggedPost(post *model.Post, deletedBy string, statusFieldId string) error {
+func (s *RetryLayerPostStore) RestoreContentFlaggedPost(post *model.Post, statusFieldId string, contentFlaggingManagedFieldId string) error {
 
 	tries := 0
 	for {
-		err := s.PostStore.RestoreContentFlaggedPost(post, deletedBy, statusFieldId)
+		err := s.PostStore.RestoreContentFlaggedPost(post, statusFieldId, contentFlaggingManagedFieldId)
 		if err == nil {
 			return nil
 		}
@@ -17079,6 +17236,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.ChannelStore = &RetryLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
 	newStore.ChannelBookmarkStore = &RetryLayerChannelBookmarkStore{ChannelBookmarkStore: childStore.ChannelBookmark(), Root: &newStore}
 	newStore.ChannelMemberHistoryStore = &RetryLayerChannelMemberHistoryStore{ChannelMemberHistoryStore: childStore.ChannelMemberHistory(), Root: &newStore}
+	newStore.ChannelReadCursorStore = &RetryLayerChannelReadCursorStore{ChannelReadCursorStore: childStore.ChannelReadCursor(), Root: &newStore}
 	newStore.ClusterDiscoveryStore = &RetryLayerClusterDiscoveryStore{ClusterDiscoveryStore: childStore.ClusterDiscovery(), Root: &newStore}
 	newStore.CommandStore = &RetryLayerCommandStore{CommandStore: childStore.Command(), Root: &newStore}
 	newStore.CommandWebhookStore = &RetryLayerCommandWebhookStore{CommandWebhookStore: childStore.CommandWebhook(), Root: &newStore}
