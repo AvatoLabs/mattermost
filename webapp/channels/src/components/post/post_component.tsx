@@ -568,7 +568,7 @@ function PostComponent(props: Props) {
                 >
                     <div className='post__img'>
                         {profilePic}
-                        {!isSystemMessage && (hideProfilePicture || props.hasReplies) && hover && (
+                        {!isSystemMessage && !hideProfilePicture && props.hasReplies && hover && (
                             <PostReadIndicator postId={post.id}/>
                         )}
                     </div>

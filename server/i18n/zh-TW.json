@@ -6881,7 +6881,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost 是一款開放源碼的平台，提供跨工具及團隊的安全通訊、協作及工作規劃。\nMattermost 包含兩大核心工具：\n\n**頻道**- 透過一對一及群組訊息，隨時與您的團隊保持聯繫。\n**[Playbooks](/playbooks)** - 建立並設定可重複使用的流程，以達成特定、可預測的結果。\n\n[檢視文件及指引]({{.HelpLink}})"
+    "translation": "Mattermost 是一款開放源碼的平台，提供跨工具及團隊的安全通訊、協作及工作規劃。\nMattermost 包含兩大核心工具：\n\n**頻道**- 透過一對一及群組訊息，隨時與您的團隊保持聯繫。\n**[劇本](/playbooks)** - 建立並設定可重複使用的流程，以達成特定、可預測的結果。\n\n[檢視文件及指引]({{.HelpLink}})"
   },
   {
     "id": "api.command_invite.user_not_in_team.messageOverflow",

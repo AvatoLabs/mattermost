@@ -8347,7 +8347,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost 是一个开源平台，用于跨工具和团队的安全通信、协作和工作编排。\nMattermost 包含两个关键工具：\n\n**频道** - 通过 1:1 和群组消息与您的团队保持联系。\n**[Playbooks](/playbooks)** - 构建和配置可重复的流程以实现特定且可预测的结果。\n\n[查看文档和指南]({{.HelpLink}})"
+    "translation": "Mattermost 是一个开源平台，用于跨工具和团队的安全通信、协作和工作编排。\nMattermost 包含两个关键工具：\n\n**频道** - 通过 1:1 和群组消息与您的团队保持联系。\n**[剧本](/playbooks)** - 构建和配置可重复的流程以实现特定且可预测的结果。\n\n[查看文档和指南]({{.HelpLink}})"
   },
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",

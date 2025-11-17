@@ -47,7 +47,7 @@ export default {
         COMMENT: 'comment',
     },
     MAX_PREV_MSGS: 100,
-    POST_COLLAPSE_TIMEOUT: 1000 * 60 * 5, // five minutes
+    POST_COLLAPSE_TIMEOUT: 1000 * 60 * 3, // three minutes
     IGNORE_POST_TYPES: [
         PostTypes.ADD_REMOVE,
         PostTypes.ADD_TO_CHANNEL,

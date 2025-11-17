@@ -2077,7 +2077,7 @@ export const Constants = {
     MHPNS_JP: 'https://ap.push.mattermost.com',
     MTPNS: 'https://push-test.mattermost.com',
     MAX_PREV_MSGS: 100,
-    POST_COLLAPSE_TIMEOUT: 1000 * 60 * 5, // five minutes
+    POST_COLLAPSE_TIMEOUT: 1000 * 60 * 3, // three minutes
     SAVE_DRAFT_TIMEOUT: 500,
     PERMISSIONS_ALL: 'all',
     PERMISSIONS_CHANNEL_ADMIN: 'channel_admin',
