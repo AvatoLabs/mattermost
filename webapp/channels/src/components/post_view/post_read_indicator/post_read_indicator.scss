@@ -13,11 +13,21 @@
     color: #1e90ff;
     cursor: pointer;
     transition: all 0.15s ease;
-    opacity: 0;
+    opacity: 1; // DEBUG: Always visible for testing
 
     // Show on post hover
     .post:hover & {
         opacity: 1;
+    }
+
+    // Zero read state - green color
+    &.post-read-indicator--zero {
+        color: #28a745;
+
+        &:hover {
+            background: rgba(40, 167, 69, 0.08);
+            color: #218838;
+        }
     }
 
     &:hover {

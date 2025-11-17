@@ -18,7 +18,27 @@ type SqlChannelReadCursorStore struct {
 }
 
 func newSqlChannelReadCursorStore(sqlStore *SqlStore) store.ChannelReadCursorStore {
-	return &SqlChannelReadCursorStore{SqlStore: sqlStore}
+	s := &SqlChannelReadCursorStore{SqlStore: sqlStore}
+	
+	// Create indexes for better query performance
+	s.createIndexesIfNotExists()
+	
+	return s
+}
+
+// createIndexesIfNotExists creates necessary indexes for optimal performance
+func (s *SqlChannelReadCursorStore) createIndexesIfNotExists() {
+	// Index on (channel_id, last_post_seq) for efficient filtering by read status
+	s.GetMaster().Exec(`
+		CREATE INDEX IF NOT EXISTS idx_channel_read_cursors_channel_seq 
+		ON channel_read_cursors(channel_id, last_post_seq DESC)
+	`)
+	
+	// Index on user_id for efficient user-level queries
+	s.GetMaster().Exec(`
+		CREATE INDEX IF NOT EXISTS idx_channel_read_cursors_user 
+		ON channel_read_cursors(user_id)
+	`)
 }
 
 // Upsert inserts or updates a read cursor for a user in a channel

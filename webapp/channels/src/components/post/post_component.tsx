@@ -592,7 +592,7 @@ function PostComponent(props: Props) {
                                             location={props.location}
                                             timestampProps={{...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined}}
                                         />
-                                        {!isSystemMessage && !hideProfilePicture && !props.hasReplies && <PostReadIndicator postId={post.id}/>}
+                                        {!isSystemMessage && !hideProfilePicture && !props.hasReplies && hover && <PostReadIndicator postId={post.id}/>}
                                     </>
                                 )}
                                 {priority}

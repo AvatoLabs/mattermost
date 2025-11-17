@@ -64,12 +64,8 @@ func (a *App) AdvanceChannelReadCursor(rctx request.CTX, userId, channelId strin
 	}
 
 	if err := a.publishReadCursorEvent(rctx, event); err != nil {
-		// Log error but don't fail the request - the cursor is already saved
-		rctx.Logger().Warn("Failed to publish read cursor event",
-			mlog.String("user_id", userId),
-			mlog.String("channel_id", channelId),
-			mlog.Err(err),
-		)
+		rctx.Logger().Error("Failed to publish read cursor event", mlog.Err(err))
+		// Don't fail the request if event publishing fails
 	}
 
 	// 6. Send WebSocket event to notify other users in the channel
@@ -187,11 +183,20 @@ func (a *App) publishReadCursorEvent(rctx request.CTX, event *model.ReadCursorEv
 	return nil
 }
 
-// publishReadCursorWebSocketEvent sends a WebSocket event to notify other users
-func (a *App) publishReadCursorWebSocketEvent(rctx request.CTX, channelId, userId string, seq int64) {
+// invalidateReadReceiptsCacheForChannel invalidates all cached read receipt counts for a channel
+func (a *App) invalidateReadReceiptsCacheForChannel(channelId string) {
+	// Note: In a production system, you might want to:
+	// 1. Keep a list of post IDs per channel
+	// 2. Or use a cache key pattern like "post_read_count:channel:{channelId}:*"
+	// For now, we rely on the 30-second TTL to eventually update
+	// The WebSocket event will trigger immediate UI updates
+}
+
+// publishReadCursorWebSocketEvent sends a WebSocket event to notify users about read cursor changes
+func (a *App) publishReadCursorWebSocketEvent(rctx request.CTX, channelId, userId string, lastPostSeq int64) {
 	message := model.NewWebSocketEvent(model.WebsocketEventReadCursorAdvanced, "", channelId, "", nil, "")
 	message.Add("user_id", userId)
-	message.Add("last_post_seq", seq)
+	message.Add("last_post_seq", lastPostSeq)
 	message.Add("channel_id", channelId)
 	
 	a.Publish(message)

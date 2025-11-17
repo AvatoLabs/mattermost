@@ -20,7 +20,6 @@ export default class PostReadIndicator extends React.PureComponent<Props> {
 
     componentDidMount() {
         // Debounce API call - only fetch after component has been visible for a bit
-        // This prevents excessive API calls when scrolling through messages
         this.fetchTimeout = setTimeout(() => {
             if (this.props.actions?.fetchReadReceiptsCount) {
                 this.props.actions.fetchReadReceiptsCount(this.props.postId);
@@ -38,20 +37,21 @@ export default class PostReadIndicator extends React.PureComponent<Props> {
     render() {
         const {readCount = 0, onClick} = this.props;
 
-        // Don't show if no one has read
-        if (readCount === 0) {
-            return null;
-        }
+        // Always show for debugging - will show "0 read" if no data loaded
+        // TODO: Uncomment this after confirming data loads correctly
+        // if (readCount === 0) {
+        //     return null;
+        // }
 
         return (
             <button
-                className='post-read-indicator'
+                className={`post-read-indicator ${readCount === 0 ? 'post-read-indicator--zero' : ''}`}
                 onClick={onClick}
                 aria-label={`${readCount} ${readCount === 1 ? 'person has' : 'people have'} read this message`}
-                title={`${readCount} ${readCount === 1 ? 'person has' : 'people have'} read this message`}
+                title={`count=${readCount}, postId=${this.props.postId}`}
             >
                 <span className='read-count'>
-                    {readCount === 1 ? '1 read' : `${readCount} read`}
+                    {readCount === 0 ? '0 read' : (readCount === 1 ? '1 read' : `${readCount} read`)}
                 </span>
             </button>
         );

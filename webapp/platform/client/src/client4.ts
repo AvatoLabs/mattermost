@@ -2643,6 +2643,13 @@ export default class Client4 {
         );
     };
 
+    getBatchPostReadReceiptsCounts = (postIds: string[]) => {
+        return this.doFetch<Record<string, number>>(
+            `${this.getPostsRoute()}/read_receipts/counts`,
+            {method: 'post', body: postIds},
+        );
+    };
+
     // Preference Routes
 
     savePreferences = (userId: string, preferences: PreferenceType[]) => {

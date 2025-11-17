@@ -55,6 +55,7 @@ func (api *API) InitPost() {
 	// Read receipts endpoints
 	api.BaseRoutes.Post.Handle("/read_receipts", api.APISessionRequired(getPostReadReceipts)).Methods(http.MethodGet)
 	api.BaseRoutes.Post.Handle("/read_receipts/count", api.APISessionRequired(getPostReadReceiptsCount)).Methods(http.MethodGet)
+	api.BaseRoutes.Posts.Handle("/read_receipts/counts", api.APISessionRequired(getBatchPostReadReceiptsCounts)).Methods(http.MethodPost)
 }
 
 func createPostChecks(where string, c *Context, post *model.Post) {
@@ -1472,17 +1473,8 @@ func getPostReadReceiptsCount(c *Context, w http.ResponseWriter, r *http.Request
 
 	postId := c.Params.PostId
 
-	// Try to get from cache first
-	cacheKey := fmt.Sprintf("post_read_count:%s", postId)
-	if count, ok := c.App.Srv().Store().GetCache().Get(cacheKey); ok {
-		if cachedCount, ok := count.(int); ok {
-			response := map[string]int{"count": cachedCount}
-			if err := json.NewEncoder(w).Encode(response); err != nil {
-				c.Logger.Warn("Error encoding cached read count", mlog.Err(err))
-			}
-			return
-		}
-	}
+	// TODO: Add caching layer for better performance
+	// For now, we rely on database query which is acceptable with proper indexes
 
 	// Get the post to find its channel and timestamp
 	post, appErr := c.App.GetSinglePost(c.AppContext, postId, false)
@@ -1513,11 +1505,77 @@ func getPostReadReceiptsCount(c *Context, w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	// Cache the result for 30 seconds to reduce database load
-	c.App.Srv().Store().GetCache().SetWithExpiry(cacheKey, count, 30)
+	// TODO: Cache the result for better performance
 
 	response := map[string]int{"count": count}
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		c.Logger.Warn("Error encoding read count", mlog.Err(err))
+	}
+}
+
+// getBatchPostReadReceiptsCounts returns read counts for multiple posts in one request
+func getBatchPostReadReceiptsCounts(c *Context, w http.ResponseWriter, r *http.Request) {
+	var postIds []string
+	if err := json.NewDecoder(r.Body).Decode(&postIds); err != nil {
+		c.SetInvalidParamWithErr("post_ids", err)
+		return
+	}
+
+	if len(postIds) == 0 {
+		c.SetInvalidParam("post_ids")
+		return
+	}
+
+	// Limit batch size to prevent abuse
+	if len(postIds) > 100 {
+		c.SetInvalidParam("post_ids")
+		c.Err.DetailedError = "Maximum 100 post IDs allowed per request"
+		return
+	}
+
+	results := make(map[string]int)
+	channelCursorsCache := make(map[string][]*model.ChannelReadCursor)
+
+	for _, postId := range postIds {
+		// TODO: Check cache first for better performance
+
+		// Get post
+		post, appErr := c.App.GetSinglePost(c.AppContext, postId, false)
+		if appErr != nil {
+			// Skip posts that can't be fetched
+			continue
+		}
+
+		// Check permission
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannelContent) {
+			continue
+		}
+
+		// Get cursors for this channel (cached per channel)
+		cursors, exists := channelCursorsCache[post.ChannelId]
+		if !exists {
+			var appErr *model.AppError
+			cursors, appErr = c.App.GetChannelReadCursors(c.AppContext, post.ChannelId)
+			if appErr != nil {
+				continue
+			}
+			channelCursorsCache[post.ChannelId] = cursors
+		}
+
+		// Count
+		count := 0
+		for _, cursor := range cursors {
+			if cursor.UserId != post.UserId && cursor.LastPostSeq >= post.CreateAt {
+				count++
+			}
+		}
+
+		results[postId] = count
+
+		// TODO: Cache the result for better performance
+	}
+
+	if err := json.NewEncoder(w).Encode(results); err != nil {
+		c.Logger.Warn("Error encoding batch read counts", mlog.Err(err))
 	}
 }

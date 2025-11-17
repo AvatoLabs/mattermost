@@ -546,7 +546,7 @@
     position: relative;
     overflow: hidden;
     max-width: 100%;
-    padding: 8px 0.5em 0 1.5em; // If this needs to be changed then .post-row__padding needs to be adjusted accordingly
+    padding: 16px 0.5em 0 1.5em; // Increased top padding for better spacing between messages with avatars
     transition: height 200ms, background-color 200ms;
     word-wrap: break-word;
 

@@ -54,9 +54,14 @@ export function receivedReadCursorFromWebSocket(cursor: ReadCursor) {
 // Track in-flight requests to prevent duplicate API calls
 const pendingRequests = new Set<string>();
 
+// Batch queue for efficient bulk fetching
+let batchQueue: string[] = [];
+let batchTimeout: NodeJS.Timeout | null = null;
+let batchDispatch: DispatchFunc | null = null;
+
 export function fetchReadReceiptsCount(postId: string): ActionFuncAsync<{count: number}> {
     return async (dispatch, getState) => {
-        // Check if already fetched or in progress
+        // Check if already fetched
         const state = getState();
         const existingCount = state.views.readReceipts?.postReadCounts?.[postId];
         if (existingCount !== undefined) {
@@ -69,23 +74,66 @@ export function fetchReadReceiptsCount(postId: string): ActionFuncAsync<{count: 
         }
 
         pendingRequests.add(postId);
+        batchDispatch = dispatch;
 
-        try {
-            const result = await Client4.getPostReadReceiptsCount(postId);
-            
+        // Add to batch queue
+        if (!batchQueue.includes(postId)) {
+            batchQueue.push(postId);
+        }
+
+        // Schedule batch processing
+        if (!batchTimeout) {
+            batchTimeout = setTimeout(() => {
+                processBatchQueue();
+            }, 100); // Wait 100ms to collect more requests
+        }
+
+        // Return immediately - data will be dispatched when batch completes
+        return {data: {count: 0}};
+    };
+}
+
+async function processBatchQueue() {
+    if (batchQueue.length === 0 || !batchDispatch) {
+        batchTimeout = null;
+        return;
+    }
+
+    const postIds = [...batchQueue];
+    const dispatch = batchDispatch;
+    batchQueue = [];
+    batchTimeout = null;
+
+    try {
+        const results = await Client4.getBatchPostReadReceiptsCounts(postIds);
+        
+        // Dispatch all results
+        Object.entries(results).forEach(([postId, count]) => {
             dispatch({
                 type: ActionTypes.RECEIVED_READ_RECEIPTS_COUNT,
                 data: {
                     postId,
-                    count: result?.count || 0,
+                    count,
                 },
             });
-            
-            return {data: result};
-        } catch (error) {
-            return {error};
-        } finally {
             pendingRequests.delete(postId);
+        });
+    } catch (error) {
+        // On error, clear pending and try individual requests as fallback
+        for (const postId of postIds) {
+            pendingRequests.delete(postId);
+            try {
+                const result = await Client4.getPostReadReceiptsCount(postId);
+                dispatch({
+                    type: ActionTypes.RECEIVED_READ_RECEIPTS_COUNT,
+                    data: {
+                        postId,
+                        count: result?.count || 0,
+                    },
+                });
+            } catch (individualError) {
+                // Silently fail individual requests
+            }
         }
-    };
+    }
 }
