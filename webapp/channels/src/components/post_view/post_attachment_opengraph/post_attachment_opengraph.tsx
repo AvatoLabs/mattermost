@@ -5,10 +5,12 @@ import classNames from 'classnames';
 import React, {memo, useRef} from 'react';
 import {useIntl} from 'react-intl';
 
-import {CloseIcon, MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
+import {CloseIcon, MenuDownIcon, MenuRightIcon, AccountOutlineIcon, CalendarOutlineIcon} from '@mattermost/compass-icons/components';
 import type {
     OpenGraphMetadata,
     OpenGraphMetadataImage,
+    OpenGraphMetadataVideo,
+    OpenGraphMetadataAudio,
     Post,
     PostImage,
 } from '@mattermost/types/posts';
@@ -16,11 +18,13 @@ import type {
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import ExternalImage from 'components/external_image';
 import ExternalLink from 'components/external_link';
+import VideoEmbed from 'components/video_embed';
 import WithTooltip from 'components/with_tooltip';
 
 import {PostTypes} from 'utils/constants';
 import {isSystemMessage} from 'utils/post_utils';
 import {makeUrlSafe} from 'utils/url';
+import {isVideoLink} from 'utils/video_utils';
 
 import {getNearestPoint} from './get_nearest_point';
 
@@ -151,6 +155,8 @@ const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermal
                 sitename={openGraphData?.site_name}
                 title={openGraphData?.title || openGraphData?.url || link}
                 description={openGraphData?.description}
+                author={openGraphData?.article?.author}
+                publishedTime={openGraphData?.article?.published_time}
             />
             <PostAttachmentOpenGraphImage
                 imageMetadata={bestImageData}
@@ -158,6 +164,16 @@ const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermal
                 isInPermalink={isInPermalink}
                 isEmbedVisible={rest.isEmbedVisible}
                 toggleEmbedVisibility={rest.toggleEmbedVisibility}
+            />
+            {/* Check URL directly for video links since backend strips video metadata */}
+            <PostAttachmentOpenGraphVideo
+                url={openGraphData?.url || link}
+                isInPermalink={isInPermalink}
+                isEmbedVisible={rest.isEmbedVisible}
+            />
+            <PostAttachmentOpenGraphAudio
+                audioMetadata={openGraphData?.audios?.[0]}
+                isInPermalink={isInPermalink}
             />
         </ExternalLink>
     );
@@ -168,14 +184,42 @@ type BodyProps = {
     isInPermalink?: boolean;
     sitename?: string;
     description?: string;
+    author?: string;
+    publishedTime?: string;
 }
 
-export const PostAttachmentOpenGraphBody = memo(({title, isInPermalink, sitename = '', description = ''}: BodyProps) => {
+export const PostAttachmentOpenGraphBody = memo(({title, isInPermalink, sitename = '', description = '', author, publishedTime}: BodyProps) => {
+    const formatPublishedTime = (time?: string) => {
+        if (!time) return null;
+        try {
+            const date = new Date(time);
+            return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        } catch {
+            return null;
+        }
+    };
+
     return title ? (
         <div className={classNames('PostAttachmentOpenGraph__body', {isInPermalink})}>
             {(!isInPermalink && sitename) && <span className='sitename'>{sitename}</span>}
             <span className='title'>{title}</span>
             {description && <span className='description'>{description}</span>}
+            {(author || publishedTime) && (
+                <div className='metadata'>
+                    {author && (
+                        <span className='author'>
+                            <AccountOutlineIcon size={14}/>
+                            {author}
+                        </span>
+                    )}
+                    {publishedTime && (
+                        <span className='published-time'>
+                            <CalendarOutlineIcon size={14}/>
+                            {formatPublishedTime(publishedTime)}
+                        </span>
+                    )}
+                </div>
+            )}
         </div>
     ) : null;
 });
@@ -258,6 +302,57 @@ export const PostAttachmentOpenGraphImage = memo(({imageMetadata, isInPermalink,
                     slot2={imageCollapseButton}
                 />
             ) : image}
+        </div>
+    );
+});
+
+type VideoProps = {
+    url: string;
+    isInPermalink?: boolean;
+    isEmbedVisible?: boolean;
+}
+
+export const PostAttachmentOpenGraphVideo = memo(({url, isInPermalink, isEmbedVisible = true}: VideoProps) => {
+    if (!url || isInPermalink || !isEmbedVisible) {
+        return null;
+    }
+
+    // Check if it's a supported video platform (YouTube, Vimeo, Bilibili, etc.)
+    if (isVideoLink(url)) {
+        return (
+            <VideoEmbed
+                url={url}
+                show={isEmbedVisible}
+            />
+        );
+    }
+
+    // No video detected
+    return null;
+});
+
+type AudioProps = {
+    audioMetadata?: OpenGraphMetadataAudio;
+    isInPermalink?: boolean;
+}
+
+export const PostAttachmentOpenGraphAudio = memo(({audioMetadata, isInPermalink}: AudioProps) => {
+    if (!audioMetadata || isInPermalink) {
+        return null;
+    }
+
+    const src = audioMetadata.secure_url || audioMetadata.url;
+    const type = audioMetadata.type || 'audio/mpeg';
+
+    return (
+        <div className='PostAttachmentOpenGraph__audio'>
+            <audio
+                controls
+                preload='metadata'
+            >
+                <source src={src} type={type}/>
+                Your browser does not support the audio tag.
+            </audio>
         </div>
     );
 });

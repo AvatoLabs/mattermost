@@ -166,6 +166,20 @@ export declare type OpenGraphMetadataImage = {
     width?: number;
 }
 
+export declare type OpenGraphMetadataVideo = {
+    secure_url?: string;
+    url: string;
+    type?: string;
+    height?: number;
+    width?: number;
+}
+
+export declare type OpenGraphMetadataAudio = {
+    secure_url?: string;
+    url: string;
+    type?: string;
+}
+
 export declare type OpenGraphMetadata = {
     type?: string;
     title?: string;
@@ -173,6 +187,17 @@ export declare type OpenGraphMetadata = {
     site_name?: string;
     url?: string;
     images: OpenGraphMetadataImage[];
+    videos?: OpenGraphMetadataVideo[];
+    audios?: OpenGraphMetadataAudio[];
+    article?: {
+        published_time?: string;
+        modified_time?: string;
+        author?: string;
+        section?: string;
+        tag?: string;
+    };
+    locale?: string;
+    determiner?: string;
 };
 
 export declare type PostPreviewMetadata = {
