@@ -139,6 +139,11 @@ func (r *redisProvider) Type() string {
 	return model.CacheTypeRedis
 }
 
+// GetClient returns the underlying Redis client for advanced operations
+func (r *redisProvider) GetClient() rueidis.Client {
+	return r.client
+}
+
 // Close releases any resources used by the cache provider.
 func (r *redisProvider) Close() error {
 	r.client.Close()

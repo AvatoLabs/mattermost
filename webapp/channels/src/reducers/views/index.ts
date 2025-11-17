@@ -21,6 +21,7 @@ import onboardingTasks from './onboarding_tasks';
 import posts from './posts';
 import productMenu from './product_menu';
 import readout from './readout';
+import readReceipts from './read_receipts';
 import rhs from './rhs';
 import rhsSuppressed from './rhs_suppressed';
 import search from './search';
@@ -55,4 +56,5 @@ export default combineReducers({
     productMenu,
     drafts,
     readout,
+    readReceipts,
 });

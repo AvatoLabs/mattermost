@@ -4,6 +4,11 @@
 package app
 
 import (
+	"context"
+	"encoding/json"
+
+	"github.com/redis/rueidis"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -111,12 +116,59 @@ func (a *App) GetChannelReadCursorsForUser(rctx request.CTX, userId string) ([]*
 
 // publishReadCursorEvent publishes the read cursor event to Redis Stream for ReadIndexService
 func (a *App) publishReadCursorEvent(rctx request.CTX, event *model.ReadCursorEvent) error {
-	// For MVP, we'll use a simple approach
-	// In production, this should publish to Redis Stream or Kafka
+	// Get Redis client from platform
+	redisClientInterface := a.Srv().Platform().GetRedisClient()
+	if redisClientInterface == nil {
+		// Redis not configured, just log
+		rctx.Logger().Debug("Redis not configured, skipping event publish",
+			mlog.String("event_id", event.EventId),
+		)
+		return nil
+	}
+
+	// Type assert to rueidis.Client
+	redisClient, ok := redisClientInterface.(rueidis.Client)
+	if !ok {
+		rctx.Logger().Error("Redis client type assertion failed",
+			mlog.String("event_id", event.EventId),
+		)
+		return nil
+	}
+
+	// Serialize event to JSON
+	eventData, err := json.Marshal(event)
+	if err != nil {
+		rctx.Logger().Error("Failed to marshal read cursor event",
+			mlog.String("event_id", event.EventId),
+			mlog.Err(err),
+		)
+		return err
+	}
+
+	// Publish to Redis Stream using rueidis
+	streamName := "read_cursor_events"
+	ctx := context.Background()
 	
-	// TODO: Implement Redis Stream publishing when ReadIndexService is ready
-	// For now, just log the event
-	rctx.Logger().Debug("Read cursor event (would be published to Redis Stream)",
+	// Use XADD command to add to stream
+	cmd := redisClient.B().Xadd().
+		Key(streamName).
+		Id("*").  // Auto-generate ID
+		FieldValue().
+		FieldValue("data", string(eventData)).
+		Build()
+	
+	err = redisClient.Do(ctx, cmd).Error()
+	if err != nil {
+		rctx.Logger().Error("Failed to publish read cursor event to Redis Stream",
+			mlog.String("stream", streamName),
+			mlog.String("event_id", event.EventId),
+			mlog.Err(err),
+		)
+		return err
+	}
+
+	rctx.Logger().Info("Published read cursor event to Redis Stream",
+		mlog.String("stream", streamName),
 		mlog.String("event_id", event.EventId),
 		mlog.String("channel_id", event.ChannelId),
 		mlog.String("user_id", event.UserId),

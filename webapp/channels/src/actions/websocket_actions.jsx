@@ -24,6 +24,7 @@ import {
     ScheduledPostTypes,
     ContentFlaggingTypes,
 } from 'mattermost-redux/action_types';
+import {receivedReadCursorFromWebSocket} from 'actions/read_receipts';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
 import {addChannelToInitialCategory, fetchMyCategories, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
@@ -634,6 +635,14 @@ export function handleEvent(msg) {
         break;
     case SocketEvents.HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED:
         dispatch(handleHostedCustomerSignupProgressUpdated(msg));
+        break;
+    case 'read_cursor_advanced':
+        dispatch(receivedReadCursorFromWebSocket({
+            channel_id: msg.data.channel_id,
+            user_id: msg.data.user_id,
+            last_post_seq: msg.data.last_post_seq,
+            updated_at: msg.data.timestamp || Date.now(),
+        }));
         break;
     case SocketEvents.CPA_VALUES_UPDATED:
         dispatch(handleCustomAttributeValuesUpdated(msg));

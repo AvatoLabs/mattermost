@@ -644,3 +644,21 @@ func (ps *PlatformService) DatabaseTypeAndSchemaVersion() (string, string, error
 
 	return model.SafeDereference(ps.Config().SqlSettings.DriverName), strconv.Itoa(schemaVersion), nil
 }
+
+// GetRedisClient returns the Redis client if available, nil otherwise
+func (ps *PlatformService) GetRedisClient() interface{} {
+	if ps.cacheProvider == nil {
+		return nil
+	}
+	
+	// Type assert to redisProvider to access the client
+	type redisClientGetter interface {
+		GetClient() interface{}
+	}
+	
+	if rp, ok := ps.cacheProvider.(redisClientGetter); ok {
+		return rp.GetClient()
+	}
+	
+	return nil
+}
