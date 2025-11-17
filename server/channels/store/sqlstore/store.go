@@ -111,6 +111,7 @@ type SqlStoreStores struct {
 	accessControlPolicy        store.AccessControlPolicyStore
 	Attributes                 store.AttributesStore
 	ContentFlagging            store.ContentFlaggingStore
+	channelReadCursor          store.ChannelReadCursorStore
 }
 
 type SqlStore struct {
@@ -261,6 +262,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.accessControlPolicy = newSqlAccessControlPolicyStore(store, metrics)
 	store.stores.Attributes = newSqlAttributesStore(store, metrics)
 	store.stores.ContentFlagging = newContentFlaggingStore(store)
+	store.stores.channelReadCursor = newSqlChannelReadCursorStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -1060,4 +1062,8 @@ func (ss *SqlStore) ScheduledPost() store.ScheduledPostStore {
 
 func (ss *SqlStore) ContentFlagging() store.ContentFlaggingStore {
 	return ss.stores.ContentFlagging
+}
+
+func (ss *SqlStore) ChannelReadCursor() store.ChannelReadCursorStore {
+	return ss.stores.channelReadCursor
 }

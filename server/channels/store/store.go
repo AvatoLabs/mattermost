@@ -97,6 +97,7 @@ type Store interface {
 	Attributes() AttributesStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
+	ChannelReadCursor() ChannelReadCursorStore
 }
 
 type RetentionPolicyStore interface {
@@ -1239,4 +1240,28 @@ type ThreadMembershipImportData struct {
 	LastViewed int64
 	// UnreadMentions is the number of unread mentions to set the UnreadMentions field to.
 	UnreadMentions int64
+}
+
+// ChannelReadCursorStore provides methods to interact with channel_read_cursors table
+type ChannelReadCursorStore interface {
+	// Upsert inserts or updates a read cursor for a user in a channel
+	Upsert(cursor *model.ChannelReadCursor) error
+
+	// Get retrieves the read cursor for a specific user in a channel
+	Get(channelId, userId string) (*model.ChannelReadCursor, error)
+
+	// GetForChannel retrieves all read cursors for a channel
+	GetForChannel(channelId string) ([]*model.ChannelReadCursor, error)
+
+	// GetForUser retrieves all read cursors for a user across all channels
+	GetForUser(userId string) ([]*model.ChannelReadCursor, error)
+
+	// Delete removes a read cursor
+	Delete(channelId, userId string) error
+
+	// DeleteForChannel removes all read cursors for a channel
+	DeleteForChannel(channelId string) error
+
+	// DeleteOldCursors removes cursors older than the specified timestamp
+	DeleteOldCursors(olderThan int64) error
 }
