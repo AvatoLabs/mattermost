@@ -4996,7 +4996,7 @@
   "newsletter_optin.checkmark.text": "<span>我希望通过电子报订阅接收 Mattermost 的安全更新。</span>订阅即表示我同意接收 Mattermost 发送的产品更新、促销和公司新闻邮件。我已阅读<a>隐私政策</a>并知晓我可以随时<aa>取消订阅</aa>",
   "newsletter_optin.desc": "在<a>{link}</a>注册。",
   "newsletter_optin.title": "有兴趣通过电子报订阅接收 Mattermost 的安全更新、产品、促销和公司新闻吗？",
-  "next_steps_view.welcomeToMattermost": "欢迎来到 Mattermost",
+  "next_steps_view.welcomeToMattermost": "欢迎来到 Avato Labs",
   "no_results.Files.subtitle": "检查拼写或尝试其他搜索。",
   "no_results.Files.title": "没有“{searchTerm}”的文件结果",
   "no_results.channel_files.subtitle": "在此频道中发布的文件将显示在此处。",
