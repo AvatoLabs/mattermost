@@ -102,12 +102,18 @@ func (ps *PlatformService) LoadLicense() {
 
 	record, nErr := ps.Store.License().Get(sqlstore.RequestContextWithMaster(c), licenseId)
 	if nErr != nil {
-		if ps.Config().FeatureFlags.EnableMattermostEntry && model.BuildEnterpriseReady == "true" {
-			ps.logger.Info("Mattermost Entry is enabled. Unlocking enterprise features.")
-
+		// Modified: Always create a full enterprise license when BuildEnterpriseReady is true
+		if model.BuildEnterpriseReady == "true" {
+			ps.logger.Info("BuildEnterpriseReady is true. Creating full enterprise license.")
+			
 			if ps.LicenseManager() == nil {
-				ps.logger.Warn("License manager not available, setting license to nil.")
-				ps.SetLicense(nil)
+				ps.logger.Warn("License manager not available, creating fake license.")
+				// Create a fake full-featured license with unlimited users
+				license := model.NewTestLicense()
+				maxUsers := 999999999 // Set to a very large number
+				license.Features.Users = &maxUsers
+				license.SkuShortName = model.LicenseShortSkuEnterpriseAdvanced
+				ps.SetLicense(license)
 				return
 			}
 

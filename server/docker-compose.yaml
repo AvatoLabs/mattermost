@@ -125,13 +125,15 @@ services:
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
       - "MM_LOGSETTINGS_FILELOCATION=./logs/leader"
+      - "BUILD_ENTERPRISE_DIR=../enterprise"
+      - "BUILD_ENTERPRISE=true"
     networks:
       - mm-test
     depends_on:
       - start_dependencies
     volumes:
       - './../:/home/mattermost-server'
-      - './../../enterprise:/home/enterprise'
+      - './../enterprise:/home/mattermost-server/enterprise'
     restart: on-failure
     healthcheck:
       test: ["CMD", "curl", "-f", "http://leader:8065/api/v4/system/ping"]
@@ -162,13 +164,15 @@ services:
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
       - "MM_LOGSETTINGS_FILELOCATION=./logs/follower"
+      - "BUILD_ENTERPRISE_DIR=../enterprise"
+      - "BUILD_ENTERPRISE=true"
     networks:
       - mm-test
     depends_on:
       - leader
     volumes:
       - './../:/home/mattermost-server:Z'
-      - './../../enterprise:/home/enterprise:Z'
+      - './../enterprise:/home/mattermost-server/enterprise:Z'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://follower:8065/api/v4/system/ping"]
       interval: 5s
@@ -199,13 +203,15 @@ services:
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
       - "MM_LOGSETTINGS_FILELOCATION=./logs/follower2"
+      - "BUILD_ENTERPRISE_DIR=../enterprise"
+      - "BUILD_ENTERPRISE=true"
     networks:
       - mm-test
     depends_on:
       - leader
     volumes:
       - './../:/home/mattermost-server:Z'
-      - './../../enterprise:/home/enterprise:Z'
+      - './../enterprise:/home/mattermost-server/enterprise:Z'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://follower2:8065/api/v4/system/ping"]
       interval: 5s

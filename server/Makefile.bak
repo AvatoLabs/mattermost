@@ -55,11 +55,13 @@ MMCTL_BUILD_DATE = $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
 MMCTL_LDFLAGS += -X "$(MMCTL_PKG).buildDate=$(MMCTL_BUILD_DATE)"
 
 # Enterprise
-BUILD_ENTERPRISE_DIR ?= ../enterprise
-BUILD_ENTERPRISE ?= true
+BUILD_ENTERPRISE_DIR ?= ../../enterprise
+BUILD_ENTERPRISE = true
 BUILD_ENTERPRISE_READY = true
 BUILD_TYPE_NAME = enterprise
-BUILD_HASH_ENTERPRISE = $(shell cd $(BUILD_ENTERPRISE_DIR) 2>/dev/null && git rev-parse HEAD 2>/dev/null || echo "none")
+BUILD_HASH_ENTERPRISE = $(shell if [ -d "$(BUILD_ENTERPRISE_DIR)" ]; then cd $(BUILD_ENTERPRISE_DIR) && git rev-parse HEAD 2>/dev/null || echo "none"; else echo "none"; fi)
+MMCTL_TESTFLAGS += -ldflags '-X "$(MMCTL_PKG).EnableEnterpriseTests=true" -X "github.com/mattermost/mattermost/server/public/model.BuildEnterpriseReady=true"'
+MMCTL_BUILD_TAGS += enterprise
 BUILD_TAGS += enterprise
 
 FIPS_ENABLED ?= false
@@ -105,7 +107,7 @@ LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildNumber=
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildDate=$(BUILD_DATE)"
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildHash=$(BUILD_HASH)"
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
-LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildEnterpriseReady=true"
+LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
 
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
@@ -291,10 +293,7 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory.
 		curl -f -O -L https://plugins.releases.mattermost.com/release/$$plugin_package.tar.gz.sig; \
 	done
 
-prepackaged-binaries:
-	echo "Skipping all binary builds"
-	true
-	echo "Skipping all binary builds"
+prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
 ifeq ($(shell test -f bin/mmctl && printf "yes"),yes)
 	@echo "MMCTL already exists in bin/mmctl, not compiling."
 else
@@ -396,6 +395,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	./scripts/prereq-check-enterprise.sh
 endif
 
+setup-go-work: export BUILD_ENTERPRISE_READY := $(BUILD_ENTERPRISE_READY)
 setup-go-work: ## Sets up your go.work file
 ifneq ($(IGNORE_GO_WORK_IF_EXISTS),true)
 	@echo "Creating a go.work file"
@@ -404,7 +404,7 @@ ifneq ($(IGNORE_GO_WORK_IF_EXISTS),true)
 	$(GO) work use .
 	$(GO) work use ./public
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	$(GO) work use $(BUILD_ENTERPRISE_DIR)
+	$(GO) work use ../../enterprise
 endif
 endif
 

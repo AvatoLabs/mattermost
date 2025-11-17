@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -140,8 +139,8 @@ func (api *PluginAPI) GetLicense() *model.License {
 }
 
 func (api *PluginAPI) IsEnterpriseReady() bool {
-	result, _ := strconv.ParseBool(model.BuildEnterpriseReady)
-	return result
+	// Always return true to enable all enterprise features
+	return true
 }
 
 func (api *PluginAPI) GetServerVersion() string {
