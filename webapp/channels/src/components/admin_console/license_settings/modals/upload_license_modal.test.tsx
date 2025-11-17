@@ -28,7 +28,7 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
         ExpiresAt: '1620335443650',
         SkuShortName: 'Enterprise',
         Name: 'LicenseName',
-        Company: 'Mattermost Inc.',
+        Company: 'Avato Labs',
         Users: '100',
     };
 

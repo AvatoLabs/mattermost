@@ -805,11 +805,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             ) : null;
         }
 
-        return (
-            <p className='login-body-message-subtitle'>
-                {formatMessage({id: 'login.subtitle', defaultMessage: 'Collaborate with your team in real-time'})}
-            </p>
-        );
+        return null;
     };
 
     const getResetPasswordLink = () => {

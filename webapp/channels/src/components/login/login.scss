@@ -47,10 +47,11 @@
                 padding-right: 24px;
                 color: var(--title-color-indigo-500);
                 font-family: Metropolis;
-                font-size: 80px;
-                font-weight: 600;
-                letter-spacing: -0.01em;
-                line-height: 88px;
+                font-size: 56px;
+                font-weight: 700;
+                letter-spacing: -0.02em;
+                line-height: 64px;
+                margin-bottom: 16px;
             }
 
             .login-body-message-svg {
@@ -92,13 +93,13 @@
         }
 
         .login-body-card {
-            width: 540px;
+            width: 480px;
             box-sizing: border-box;
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-            border-radius: 8px;
-            margin-left: 16px;
+            border-radius: 12px;
+            margin-left: 48px;
             background-color: var(--center-channel-bg);
-            box-shadow: var(--elevation-5);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
 
             &.with-error {
                 @include mixins.shake-horizontally;
@@ -115,10 +116,11 @@
                 .login-body-card-title {
                     color: var(--center-channel-color);
                     font-family: 'Metropolis';
-                    font-size: 22px;
+                    font-size: 24px;
                     font-style: normal;
                     font-weight: 600;
-                    line-height: 28px;
+                    line-height: 32px;
+                    margin-bottom: 8px;
                 }
 
                 .login-body-custom-branding-markdown,
@@ -132,11 +134,11 @@
 
                 .login-body-card-form {
                     .login-body-card-form-input {
-                        margin-top: 22px;
+                        margin-top: 24px;
                     }
 
                     .login-body-card-form-password-input {
-                        margin-top: 24px;
+                        margin-top: 20px;
                     }
 
                     .login-body-card-form-link {
@@ -153,7 +155,11 @@
                         @include mixins.button-large;
 
                         width: 100%;
-                        margin-top: 30px;
+                        margin-top: 32px;
+                        height: 48px;
+                        border-radius: 8px;
+                        font-size: 16px;
+                        font-weight: 600;
                     }
                 }
 
@@ -224,14 +230,19 @@
 
 @media screen and (min-width: 1680px) {
     .login-body .login-body-content {
-        .login-body-message,
+        .login-body-message {
+            width: 580px;
+        }
+
         .login-body-card {
-            width: 610px;
+            width: 520px;
         }
 
         .login-body-message .login-body-message-title {
-            padding-right: 80px;
-            margin-top: 48px;
+            padding-right: 40px;
+            margin-top: 24px;
+            font-size: 64px;
+            line-height: 72px;
         }
     }
 }

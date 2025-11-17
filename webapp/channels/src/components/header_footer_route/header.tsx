@@ -30,9 +30,9 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
 
     let freeBanner = null;
     if (license.IsLicensed === 'false') {
-        freeBanner = <><img src={customLogo} alt="Logo" style={{height: '32px'}} /><span className='freeBadge'>{'TEAM EDITION'}</span></>;
+        freeBanner = <><img src={customLogo} alt="Logo" style={{height: '48px'}} /><span className='freeBadge'>{'TEAM EDITION'}</span></>;
     } else if (license.SkuShortName === LicenseSkus.Entry) {
-        freeBanner = <><img src={customLogo} alt="Logo" style={{height: '32px'}} /><span className='freeBadge'>{'ENTRY EDITION'}</span></>;
+        freeBanner = <><img src={customLogo} alt="Logo" style={{height: '48px'}} /><span className='freeBadge'>{'ENTRY EDITION'}</span></>;
     }
 
     let title: React.ReactNode = SiteName;
@@ -40,7 +40,7 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
         if (freeBanner) {
             title = '';
         } else {
-            title = <img src={customLogo} alt="Logo" style={{height: '32px'}} />;
+            title = <img src={customLogo} alt="Logo" style={{height: '48px'}} />;
         }
     }
 
