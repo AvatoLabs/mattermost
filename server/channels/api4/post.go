@@ -51,6 +51,10 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods(http.MethodPost)
 
 	api.BaseRoutes.Posts.Handle("/rewrite", api.APISessionRequired(rewriteMessage)).Methods(http.MethodPost)
+
+	// Read receipts endpoints
+	api.BaseRoutes.Post.Handle("/read_receipts", api.APISessionRequired(getPostReadReceipts)).Methods(http.MethodGet)
+	api.BaseRoutes.Post.Handle("/read_receipts/count", api.APISessionRequired(getPostReadReceiptsCount)).Methods(http.MethodGet)
 }
 
 func createPostChecks(where string, c *Context, post *model.Post) {
@@ -1410,5 +1414,94 @@ func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(*response); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// getPostReadReceipts returns the list of users who have read a post
+func getPostReadReceipts(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	postId := c.Params.PostId
+
+	// Get the post to find its channel and timestamp
+	post, appErr := c.App.GetSinglePost(c.AppContext, postId, false)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Check permission to read channel
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannelContent) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	// Get all read cursors for this channel
+	cursors, appErr := c.App.GetChannelReadCursors(c.AppContext, post.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Filter cursors that have read this post (cursor >= post.CreateAt)
+	var readReceipts []map[string]interface{}
+	for _, cursor := range cursors {
+		if cursor.LastPostSeq >= post.CreateAt {
+			readReceipts = append(readReceipts, map[string]interface{}{
+				"user_id":       cursor.UserId,
+				"last_post_seq": cursor.LastPostSeq,
+				"read_at":       cursor.UpdatedAt,
+			})
+		}
+	}
+
+	if err := json.NewEncoder(w).Encode(readReceipts); err != nil {
+		c.Logger.Warn("Error encoding read receipts", mlog.Err(err))
+	}
+}
+
+// getPostReadReceiptsCount returns the count of users who have read a post
+func getPostReadReceiptsCount(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	postId := c.Params.PostId
+
+	// Get the post to find its channel and timestamp
+	post, appErr := c.App.GetSinglePost(c.AppContext, postId, false)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Check permission to read channel
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannelContent) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	// Get all read cursors for this channel
+	cursors, appErr := c.App.GetChannelReadCursors(c.AppContext, post.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Count cursors that have read this post
+	count := 0
+	for _, cursor := range cursors {
+		if cursor.LastPostSeq >= post.CreateAt {
+			count++
+		}
+	}
+
+	response := map[string]int{"count": count}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		c.Logger.Warn("Error encoding read count", mlog.Err(err))
 	}
 }

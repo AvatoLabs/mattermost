@@ -14,12 +14,9 @@ type Props = {
 
 export default class PostReadIndicator extends React.PureComponent<Props> {
     render() {
-        const {readCount, onClick} = this.props;
+        const {readCount = 0, onClick} = this.props;
 
-        if (!readCount || readCount === 0) {
-            return null;
-        }
-
+        // Always show for testing - in production, you might want to hide when readCount is 0
         return (
             <button
                 className='post-read-indicator'
@@ -28,7 +25,12 @@ export default class PostReadIndicator extends React.PureComponent<Props> {
             >
                 <i className='icon icon-check-all'/>
                 <span className='read-count'>
-                    {readCount === 1 ? (
+                    {readCount === 0 ? (
+                        <FormattedMessage
+                            id='post.read_indicator.none'
+                            defaultMessage='Not read yet'
+                        />
+                    ) : readCount === 1 ? (
                         <FormattedMessage
                             id='post.read_indicator.one'
                             defaultMessage='1 read'

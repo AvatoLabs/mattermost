@@ -105,11 +105,20 @@ func (a *App) GetChannelReadCursor(rctx request.CTX, userId, channelId string) (
 	return cursor, nil
 }
 
-// GetChannelReadCursorsForUser retrieves all read cursors for a user
+// GetChannelReadCursorsForUser returns all read cursors for a user across all channels
 func (a *App) GetChannelReadCursorsForUser(rctx request.CTX, userId string) ([]*model.ChannelReadCursor, *model.AppError) {
 	cursors, err := a.Srv().Store().ChannelReadCursor().GetForUser(userId)
 	if err != nil {
 		return nil, model.NewAppError("GetChannelReadCursorsForUser", "app.channel.read_cursor.get_for_user.app_error", nil, err.Error(), 500)
+	}
+	return cursors, nil
+}
+
+// GetChannelReadCursors returns all read cursors for a channel
+func (a *App) GetChannelReadCursors(rctx request.CTX, channelId string) ([]*model.ChannelReadCursor, *model.AppError) {
+	cursors, err := a.Srv().Store().ChannelReadCursor().GetForChannel(channelId)
+	if err != nil {
+		return nil, model.NewAppError("GetChannelReadCursors", "app.channel.read_cursor.get_for_channel.app_error", nil, err.Error(), 500)
 	}
 	return cursors, nil
 }
