@@ -6,6 +6,7 @@ import {useSelector} from 'react-redux';
 
 import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import CopyButton from 'components/copy_button';
+import MermaidRenderer from 'components/mermaid_renderer';
 
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
 import * as TextFormatting from 'utils/text_formatting';
@@ -37,6 +38,21 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelId}
     }, [language]);
 
     const usedLanguage = getUsedLanguage();
+
+    // Handle Mermaid diagrams separately
+    if (usedLanguage === 'mermaid' || usedLanguage === 'mmd') {
+        return (
+            <div className='post-code post-code--mermaid'>
+                <div className='post-code__overlay'>
+                    <CopyButton content={code}/>
+                    <span className='post-code__language'>
+                        Mermaid
+                    </span>
+                </div>
+                <MermaidRenderer code={code}/>
+            </div>
+        );
+    }
 
     let className = 'post-code';
     if (!usedLanguage) {

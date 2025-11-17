@@ -1986,6 +1986,7 @@ export const Constants = {
         makefile: {name: 'Makefile', extensions: ['mk', 'mak'], aliases: ['make', 'mf', 'gnumake', 'bsdmake', 'mk']},
         markdown: {name: 'Markdown', extensions: ['md', 'mkdown', 'mkd'], aliases: ['md', 'mkd']},
         matlab: {name: 'Matlab', extensions: ['matlab', 'm'], aliases: ['m']},
+        mermaid: {name: 'Mermaid', extensions: ['mermaid', 'mmd'], aliases: ['mmd']},
         objectivec: {name: 'Objective C', extensions: ['mm', 'objc', 'obj-c'], aliases: ['objective_c', 'objc']},
         ocaml: {name: 'OCaml', extensions: ['ml'], aliases: ['ml']},
         perl: {name: 'Perl', extensions: ['perl', 'pl'], aliases: ['pl']},

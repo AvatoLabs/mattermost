@@ -291,6 +291,47 @@ h6.markdown__heading {
     user-select: none;
 }
 
+.mermaid-diagram {
+    padding: 16px;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    border-radius: 4px;
+    overflow-x: auto;
+    text-align: center;
+
+    svg {
+        max-width: 100%;
+        height: auto;
+    }
+
+    &.mermaid-loading {
+        min-height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &::after {
+            content: 'Rendering diagram...';
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            font-size: 14px;
+        }
+    }
+}
+
+.mermaid-error {
+    padding: 16px;
+
+    .alert {
+        margin: 0;
+    }
+
+    pre {
+        margin-top: 8px;
+        font-size: 12px;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+}
+
 .post__body {
     .post-message__text-container {
         .post-message__text {

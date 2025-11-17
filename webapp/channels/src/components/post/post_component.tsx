@@ -139,6 +139,20 @@ function PostComponent(props: Props) {
 
     const isSystemMessage = PostUtils.isSystemMessage(post);
     const fromAutoResponder = PostUtils.fromAutoResponder(post);
+    
+    // Check if current user has replied to this post
+    const currentUserHasReplied = useMemo(() => {
+        if (!post.participants || !Array.isArray(post.participants)) {
+            return false;
+        }
+        // participants can be UserProfile objects or user IDs
+        return post.participants.some((participant: any) => {
+            if (typeof participant === 'string') {
+                return participant === props.currentUserId;
+            }
+            return participant?.id === props.currentUserId;
+        });
+    }, [post.participants, props.currentUserId]);
 
     useEffect(() => {
         if (shouldHighlight) {
@@ -568,7 +582,7 @@ function PostComponent(props: Props) {
                 >
                     <div className='post__img'>
                         {profilePic}
-                        {!isSystemMessage && !hideProfilePicture && props.hasReplies && hover && (
+                        {!isSystemMessage && !hideProfilePicture && props.hasReplies && hover && !currentUserHasReplied && (
                             <PostReadIndicator postId={post.id}/>
                         )}
                     </div>
@@ -592,7 +606,7 @@ function PostComponent(props: Props) {
                                             location={props.location}
                                             timestampProps={{...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined}}
                                         />
-                                        {!isSystemMessage && !hideProfilePicture && !props.hasReplies && hover && <PostReadIndicator postId={post.id}/>}
+                                        {!isSystemMessage && !hideProfilePicture && !props.hasReplies && hover && !currentUserHasReplied && <PostReadIndicator postId={post.id}/>}
                                     </>
                                 )}
                                 {priority}

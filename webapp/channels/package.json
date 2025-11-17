@@ -52,6 +52,7 @@
     "mark.js": "8.11.1",
     "marked": "github:mattermost/marked#08f3638e37e17738fafcaf749683ce6fee1d8edc",
     "memoize-one": "6.0.0",
+    "mermaid": "9.4.3",
     "moment-timezone": "0.5.38",
     "monaco-editor": "0.52.2",
     "monaco-editor-webpack-plugin": "7.1.0",
