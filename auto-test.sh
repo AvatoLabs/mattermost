@@ -67,9 +67,27 @@ echo "----------------------------------------"
 TEAMS=$(curl -s -H "Authorization: Bearer $TOKEN" "$API_URL/users/me/teams")
 TEAM_ID=$(echo "$TEAMS" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
 
+if [ -z "$TEAM_ID" ]; then
+    echo "❌ 未找到团队，请先在浏览器中创建或加入一个团队"
+    exit 1
+fi
+
 CHANNELS=$(curl -s -H "Authorization: Bearer $TOKEN" "$API_URL/users/me/teams/$TEAM_ID/channels")
 CHANNEL_ID=$(echo "$CHANNELS" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
 CHANNEL_NAME=$(echo "$CHANNELS" | grep -o '"display_name":"[^"]*"' | head -1 | cut -d'"' -f4)
+
+if [ -z "$CHANNEL_ID" ]; then
+    echo "❌ 未找到频道，尝试获取所有可用频道..."
+    # 尝试获取公开频道
+    ALL_CHANNELS=$(curl -s -H "Authorization: Bearer $TOKEN" "$API_URL/teams/$TEAM_ID/channels")
+    CHANNEL_ID=$(echo "$ALL_CHANNELS" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+    CHANNEL_NAME=$(echo "$ALL_CHANNELS" | grep -o '"display_name":"[^"]*"' | head -1 | cut -d'"' -f4)
+    
+    if [ -z "$CHANNEL_ID" ]; then
+        echo "❌ 仍未找到频道，请先在浏览器中创建一个频道"
+        exit 1
+    fi
+fi
 
 echo "✅ 找到频道"
 echo "   频道名: $CHANNEL_NAME"
