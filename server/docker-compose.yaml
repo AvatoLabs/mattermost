@@ -127,6 +127,7 @@ services:
       - "MM_LOGSETTINGS_FILELOCATION=./logs/leader"
       - "BUILD_ENTERPRISE_DIR=../enterprise"
       - "BUILD_ENTERPRISE=true"
+      - "BUILD_ENTERPRISE_READY=true"
     networks:
       - mm-test
     depends_on:
@@ -166,6 +167,7 @@ services:
       - "MM_LOGSETTINGS_FILELOCATION=./logs/follower"
       - "BUILD_ENTERPRISE_DIR=../enterprise"
       - "BUILD_ENTERPRISE=true"
+      - "BUILD_ENTERPRISE_READY=true"
     networks:
       - mm-test
     depends_on:
@@ -205,6 +207,7 @@ services:
       - "MM_LOGSETTINGS_FILELOCATION=./logs/follower2"
       - "BUILD_ENTERPRISE_DIR=../enterprise"
       - "BUILD_ENTERPRISE=true"
+      - "BUILD_ENTERPRISE_READY=true"
     networks:
       - mm-test
     depends_on:
