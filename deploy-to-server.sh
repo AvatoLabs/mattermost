@@ -66,6 +66,14 @@ echo ""
 echo "📄 go.work 文件内容:"
 cat go.work
 
+# 诊断：检查 enterprise 目录和 go.mod
+echo ""
+echo "🔍 检查 enterprise 目录:"
+ls -la ../enterprise/ | head -10
+echo ""
+echo "📄 检查 enterprise/go.mod:"
+cat ../enterprise/go.mod
+
 # 清理 Go 模块缓存并下载依赖
 echo ""
 echo "📥 预下载 Go 依赖..."

@@ -128,6 +128,7 @@ services:
       - "BUILD_ENTERPRISE_DIR=../enterprise"
       - "BUILD_ENTERPRISE=true"
       - "BUILD_ENTERPRISE_READY=true"
+      - "IGNORE_GO_WORK_IF_EXISTS=true"
     networks:
       - mm-test
     depends_on:
@@ -168,6 +169,7 @@ services:
       - "BUILD_ENTERPRISE_DIR=../enterprise"
       - "BUILD_ENTERPRISE=true"
       - "BUILD_ENTERPRISE_READY=true"
+      - "IGNORE_GO_WORK_IF_EXISTS=true"
     networks:
       - mm-test
     depends_on:
@@ -208,6 +210,7 @@ services:
       - "BUILD_ENTERPRISE_DIR=../enterprise"
       - "BUILD_ENTERPRISE=true"
       - "BUILD_ENTERPRISE_READY=true"
+      - "IGNORE_GO_WORK_IF_EXISTS=true"
     networks:
       - mm-test
     depends_on:
