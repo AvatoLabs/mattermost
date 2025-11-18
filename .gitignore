@@ -131,7 +131,7 @@ api/data/*
 api4/data/*
 app/data/*
 
-/enterprise
+# /enterprise  # 注释掉，允许提交 enterprise placeholder
 
 cover.out
 ecover.out
